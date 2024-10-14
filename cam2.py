@@ -6,6 +6,7 @@ from tensorflow.keras.applications.efficientnet import preprocess_input
 from tensorflow.keras.models import load_model
 import time
 import random
+import serial
 
 # Load the pre-trained model
 model = load_model('/Users/macbook/Desktop/trash_classification_model.h5')
@@ -46,6 +47,29 @@ def get_final_prediction(predictions, random_value):
             else:
                 return "GENERAL WASTE"
 
+# Initialize serial communication with Arduino
+ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1)  # Adjust port as needed
+time.sleep(2)  # Wait for the serial connection to initialize
+
+def send_prediction_to_arduino(prediction):
+    # Map prediction to a single character command
+    command_map = {
+        "METAL": 'M',
+        "GENERAL WASTE": 'G',
+        "glass": 'L',
+        "paper": 'P',
+        "plastic": 'T'
+    }
+    command = command_map.get(prediction, 'U')  # 'U' for unknown
+    
+    # Send the command to Arduino
+    ser.write(command.encode())
+    time.sleep(0.1)  # Small delay to ensure command is sent
+    
+    # Read and print Arduino's response (optional)
+    response = ser.readline().decode().strip()
+    print(f"Arduino response: {response}")
+
 # Initialize webcam for real-time classification
 cap = cv2.VideoCapture(0)
 last_prediction_time = time.time()
@@ -75,6 +99,7 @@ while True:
         last_probabilities = predictions  # Update the last prediction probabilities
         random_value = random.choice([True, False])  # Generate random True/False value
         final_prediction = get_final_prediction(last_probabilities, random_value)  # final prediction value to give to arduino. !!!!!!!!!
+        send_prediction_to_arduino(final_prediction)  # Send prediction to Arduino
         last_prediction_time = current_time  # Update the last prediction time
 
     # Display the last label on the frame
@@ -104,3 +129,4 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
+ser.close()  # Close the serial connection when done

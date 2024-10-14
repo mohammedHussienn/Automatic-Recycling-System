@@ -54,4 +54,31 @@ void loop() {
 
 }
 
-// Add additional functions as needed
+
+void processSerialInput(char input) {
+  switch (input) {
+    case 'M':
+      // Handle metal
+      Serial.println("Detected: Metal");
+      break;
+    case 'G':
+      // Handle general waste
+      Serial.println("Detected: General Waste");
+      break;
+    case 'L':
+      // Handle glass
+      Serial.println("Detected: Glass");
+      break;
+    case 'P':
+      // Handle paper
+      Serial.println("Detected: Paper");
+      break;
+    case 'T':
+      // Handle plastic
+      Serial.println("Detected: Plastic");
+      break;
+    default:
+      Serial.println("Unknown material");
+      break;
+  }
+}
